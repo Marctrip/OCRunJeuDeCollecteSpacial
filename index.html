@@ -5,13 +5,183 @@
 		<title>TP : Un jeu de collecte spatiale</title>
 		<style type="text/css">
 			
+			#jeu {
+				border: 2px solid black;
+				width: 600px;
+				height: 400px;
+				background: url('image/fond.png');
+			}
+			#soucoupe {
+				z-index: 200;
+				position: absolute;
+				left: 20px
+				top: 70px
+			}
+
+			#bon {
+				z-index: 100;
+				position: absolute;
+				display: none;
+			}
+
+			#mauvais {
+				z-index: 100;
+				position: absolute;
+				display: none;
+			}
+
 		</style>
 	</head>
 
 	<body>
+
+		<div id="jeu">
+			<img src="image/soucoupe.png" alt="soucoupe" id="soucoupe" />
+			<img src="image/bon.png" alt="bon" id="bon" />
+			<img src="image/mauvais.png" alt="mauvais" id="mauvais" />
+		</div>
+		<audio preload="auto" id="musiqueFond" autoplay="autoplay" loop="loop">
+			<source src="son/Luis_Fonsi_Despacito_ft_Daddy_Yankee.mp3" type="audio/mp3"></audio>
+		</audio>
+		Bon : <span id="infoBon">0</span> Mauvais : <span id="infoMauvais">0</span> Score : <span id="infoScore">0</span>
 		
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 		<script>
+
+			$(function() {
+				var stopDetection = 0; // Déclaration de la varible qui va être utilisé dans plusieur fonction, la collision ne doit pas être déctctée à ce niveau
+
+				$(document).keydown(function(e){ // Fonction pour déplacer la soucoupe avec le clavier
+			        if (e.which == 39) // Touche du clavier evrs la droite
+			        {
+			          scX = parseInt($('#soucoupe').css('left'));
+			          if (scX < 470) // La surface vers la droite ne doit pas être superieur à 450px
+			          $('#soucoupe').css('left', scX+30); // Avance vers la gauche de 30px
+			        }
+			        if (e.which == 37) // Touche du clavier vers la gauche
+			        {
+			          scX = parseInt($('#soucoupe').css('left'));
+			          if (scX > 20) // La surface vers la gauche doit être inférieur à 30px
+			          $('#soucoupe').css('left', scX-30); // Avance vers la droite de 30px
+			        }
+			        if (e.which == 40) // Touche du clavier vers le bas
+			        {
+			        	scY = parseInt($('#soucoupe').css('top'));
+			        	if (scY < 230) // La soucoupe ne doit pas monter à plus de 240px de la surface
+			        	$('#soucoupe').css('top', scY+30); // Avance vers le bas de 30px	
+			        }
+			        if (e.which == 38) // Touche du clavier vers le haut
+			        {
+			        	scY = parseInt($('#soucoupe').css('top'));
+			        	if (scY > 20) // La soucoupe ne doit pas descendre à moins de 0px de la surface
+			        	$('#soucoupe').css('top', scY-30);
+			        }
+			        if (e.which == 36) // Touche du clavier diagonale haut et gauche
+			        {
+			        	scX = parseInt($('#soucoupe').css('left'));
+			        	scY = parseInt($('#soucoupe').css('top'));
+
+			        	if ((scX > 20) && (scY > 20)) { // La soucoupe ne doit pas monter à plus de 0px et aller à moins de 30px vers la gauche
+				        	$('#soucoupe').css('top', scY-30).css('left', scX-30); // La soucoupe avance en diagonale haut/gauche de 30px    
+				        }
+			    	}
+			    	if (e.which == 33) // Touche du clavier diagonale haut et droite
+			    	{
+			    		scX = parseInt($('#soucoupe').css('left'));
+			    		scY = parseInt($('#soucoupe').css('top'));
+
+			    		if ((scX < 470) && (scY > 20)) { // La soucoupe ne doit pas monter à plus de 0px et aller à plus de 450px vers la droite
+			    			$('#soucoupe').css('top', scY-30).css('left', scX+30);
+			    		}
+			    	}
+			    	if (e.which == 35) // Touche du clavier diagonale bas et gauche
+			    	{
+			    		scX = parseInt($('#soucoupe').css('left'));
+			    		scY = parseInt($('#soucoupe').css('top'));
+
+			    		if ((scX > 20) && (scY < 230)) { // La soucoupe ne doit pas descendre à plus de 240px et aller à plus de 30px vers la gauche
+			    			$('#soucoupe').css('top', scY+30).css('left', scX-30);
+			    		}
+			    	}
+			    	if (e.which == 34) // touche du clavier diagonale bas et droite
+			    	{
+			    		scX = parseInt($('#soucoupe').css('left'));
+			    		scY = parseInt($('#soucoupe').css('top'));
+
+			    		if ((scX < 470) && (scY < 230)) {
+			    			$('#soucoupe').css('top', scY+30).css('left', scX+30);
+			    		}
+			    	}
+			    });
+				function afficheElements() // Cette fonction fait apparaître les images #bon & #mauvais
+				{
+					stopDetection = 0; // La collision ne doit pas être déctctée à ce niveau
+				    var elemX = Math.floor(Math.random()*500)+20; // Afficher de façon aléatoire sur la ligne abscisse.
+				    var elemY = Math.floor(Math.random()*300)+20; // Affiche de façon aléatoire sur la ligne ordonnées.
+				    var elemType = Math.floor(Math.random()*2); // Affiche l'élément #bon si il vaut 0 sinon si c'est un 1 affiche l'élément #mauvais
+				    if (elemType == 0) // Si c'est l'élément #bon  
+				    {
+				        $('#bon').css('top',elemY).css('left',elemX); // Affiche #bon hauteur tant et tant de ...px & le niveau tant et tant de ...px 
+				        $('#bon').show(); // Affiche #bon
+				        $('#mauvais').css('display','none'); // N'affiche pas l'élément #mauvais
+				    }
+				    else // Sinon c'est l'élément #mauvais
+				    {
+				        $('#mauvais').css('top',elemY).css('left',elemX); // Affiche #mauvais hauteur tant et tant de ...px & le niveau tant et tant de ...px
+				        $('#mauvais').show(); // Affiche #mauvais
+				        $('#bon').css('display','none'); // N'affiche pas l'élément #mauvais
+				    }
+				}
+				function collision() // Fonction qui met en collision la #soucoupe avec #bon & #mauvais
+				{
+					scX = parseInt($('#soucoupe').css('left')); // Mémorisent les coordonnées de la soucoupe dans une variable, utiliser parseInt() pour les nombre, ici l'abscisse.
+					scY = parseInt($('#soucoupe').css('top')); // Mémorisent les coordonnées de la soucoupe dans une variable, utiliser parseInt() pour les nombre, ici les ordonnées.
+					if ($('#bon').css('display') == 'none') // Si l'élément #bon n'est pas affiché.
+					{
+						elemType = 'mauvais'; // Cela signifie que #mauvais est affichée
+						elemX = parseInt($('#mauvais').css('left')); // #mauvais est affiché en abscisse ...px. 
+						elemY = parseInt($('#mauvais').css('top')); // #mauvais est affiché en ordonnée ...px. 
+					}
+					else // Sinon #bon est affiché
+					{
+						elemType = 'bon'; // Cela signifie que #bon est affichée
+						elemX = parseInt($('#bon').css('left')); // #bon est affiché en abscisse ...px.
+						elemY = parseInt($('#bon').css('top')); // #bon est affiché en ordonnée ...px.
+					}
+					// #soucoupe 125x177
+					// #bon      50x116
+					// #mauvais  56x113
+					// (elemX < (scX+125-50+20)) le +125 preprésente la largeur de la soucoupe, le -50 la largeur de #bon & #mauvais, le -20 pour que la soucoup ne soit pas totalement recouvert (facilter la collision).
+					if ((elemX > scX-20) && (elemX < (scX+125-50+20)) && (elemY > scY-20) && (elemY < (scY+177-166+20)) && (stopDetection == 0)) // La collision ne doit pas être déctctée à ce niveau
+					{
+						stopDetection = 1; // La collision peut avoir lieu
+						if (elemType == 'bon') // Cette ligne met les 3 span à jour
+						{ // Si c'est égale à bon
+							var nbBon = parseInt($('#infoBon').text())+1; // Incrémenter d'un point 
+							$('#infoBon').text(nbBon); // Puis afficher
+							var score = parseInt($('#infoScore').text())+5; // Incrémenter le score de 5 points
+							$('#infoScore').text(score); // Puis afficher
+							$('#bon').css('display','none'); // Puis effacer #bon
+						}
+						else
+						{ // Sinon c'est égale à mauvais
+							var nbMauvais = parseInt($('#infoMauvais').text())+1; // Incrémenter d'un point
+							$('#infoMauvais').text(nbMauvais); // Puis afficher
+							var score = parseInt($('#infoScore').text())-5; // Enlever le score de 5 points
+							$('#infoScore').text(score); // Puis afficher le score
+							$('#mauvais').css('#display','none'); // Puis effacer #mauvais
+						}
+					}
+				}
+				setInterval(afficheElements, 2000); // Elle appelle de façon répétitive  la fonction afficheElement() toutes les 2 secondes
+				setInterval(collision, 200); // Activer la fonction collision() à intervalles réguliers toutes les 200 millisecondes
+
+				/*
+				Après avoir définit les touches on remarque q'il y a 2 fonction
+					- affichementElements()
+					- collision()
+				*/
+			});
 
 		</script>
 	</body>
